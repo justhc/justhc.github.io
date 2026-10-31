@@ -1,0 +1,313 @@
+from pathlib import Path
+import zipfile, textwrap
+
+out = Path("/mnt/data/harichandana-portfolio")
+out.mkdir(exist_ok=True)
+
+html = r'''<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Portfolio of Harichandana Bhaskar — software engineer working across backend systems, full-stack products and GenAI applications.">
+  <meta name="theme-color" content="#f5f2ec">
+  <title>Harichandana Bhaskar — Software Engineer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper:#f5f2ec; --ink:#20231f; --muted:#6f746d; --line:#d9d8cf;
+      --green:#315c48; --green-soft:#e2e9df; --orange:#c56a43; --white:#fffefa;
+      --serif:"Playfair Display", Georgia, serif; --sans:"DM Sans", Arial, sans-serif;
+      --mono:"DM Mono", monospace; --width:1080px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.6}
+    a{color:inherit;text-decoration:none}
+    a:hover{color:var(--green)}
+    .wrap{width:min(var(--width),calc(100% - 48px));margin:auto}
+    .topbar{height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+    .brand{font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:-.4px}
+    nav{display:flex;gap:26px;font-size:13px;color:var(--muted)}
+    nav a:hover{color:var(--ink)}
+    .eyebrow{font:11px var(--mono);text-transform:uppercase;letter-spacing:1.6px;color:var(--green)}
+    .hero{padding:104px 0 92px;display:grid;grid-template-columns:1.4fr .6fr;gap:60px;align-items:end}
+    h1{font:600 clamp(48px,7vw,82px)/1.04 var(--serif);letter-spacing:-2.7px;margin:20px 0 24px;max-width:760px}
+    h1 em{color:var(--green);font-weight:500}
+    .intro{font-size:17px;line-height:1.8;color:#555b54;max-width:620px}
+    .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px}
+    .button{display:inline-flex;align-items:center;gap:10px;padding:12px 17px;border:1px solid var(--ink);font-size:13px;font-weight:600;transition:.2s}
+    .button.primary{background:var(--green);border-color:var(--green);color:white}
+    .button:hover{transform:translateY(-2px);color:inherit}
+    .button.primary:hover{color:white;background:#244b39}
+    .hero-note{border-left:1px solid var(--line);padding:8px 0 8px 26px;color:var(--muted);font-size:13px}
+    .hero-note strong{display:block;color:var(--ink);font:500 20px var(--serif);margin:7px 0}
+    .hero-note .availability{display:inline-block;margin-top:20px;padding:6px 9px;background:var(--green-soft);color:var(--green);font:10px var(--mono);text-transform:uppercase;letter-spacing:.7px}
+    .section{padding:76px 0;border-top:1px solid var(--line)}
+    .section-head{display:flex;justify-content:space-between;align-items:baseline;gap:20px;margin-bottom:34px}
+    h2{font:600 38px/1.15 var(--serif);letter-spacing:-.8px;margin:8px 0}
+    .section-desc{font-size:13px;color:var(--muted);max-width:340px}
+    .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:70px}
+    .about-copy{font-size:16px;color:#555b54;line-height:1.9;max-width:570px}
+    .about-copy p{margin:0 0 16px}
+    .facts{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .fact{padding:17px 0;border-top:1px solid var(--line)}
+    .fact strong{display:block;font:600 28px var(--serif);color:var(--green)}
+    .fact span{font-size:12px;color:var(--muted)}
+    .project-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+    .project{background:var(--white);border:1px solid var(--line);padding:25px;min-height:250px;display:flex;flex-direction:column}
+    .project-top{display:flex;justify-content:space-between;align-items:center}
+    .project-num{font:11px var(--mono);color:var(--orange)}
+    .project-type{font:10px var(--mono);text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+    h3{font:600 24px var(--serif);margin:24px 0 9px}
+    .project p{font-size:13px;line-height:1.8;color:var(--muted);margin:0;max-width:500px}
+    .tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:20px}
+    .tag{font:10px var(--mono);padding:5px 8px;background:#f0eee8;color:#53594f}
+    .project-link{margin-top:auto;padding-top:22px;font-size:12px;font-weight:700;color:var(--green)}
+    .project-link span{padding-left:5px}
+    .timeline{border-top:1px solid var(--line)}
+    .job{display:grid;grid-template-columns:190px 1fr;gap:40px;padding:26px 0;border-bottom:1px solid var(--line)}
+    .job-date{font:11px var(--mono);color:var(--muted);padding-top:6px}
+    .job h3{margin:0 0 4px;font-size:22px}
+    .job-company{font-size:13px;color:var(--green);font-weight:600;margin-bottom:10px}
+    .job p{font-size:13px;color:var(--muted);max-width:690px;margin:0;line-height:1.8}
+    .skills-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:25px}
+    .skill-group{border-top:1px solid var(--line);padding-top:15px}
+    .skill-group h3{font:11px var(--mono);text-transform:uppercase;letter-spacing:1px;margin:0 0 13px;color:var(--green)}
+    .skill-group p{font-size:13px;line-height:2;color:var(--muted);margin:0}
+    .writing-card{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:center;padding:28px;background:var(--green);color:#fffefa}
+    .writing-card .eyebrow{color:#c5d5c7}
+    .writing-card h3{font:500 27px var(--serif);margin:10px 0}
+    .writing-card p{font-size:13px;color:#d5ded6;max-width:620px;margin:0}
+    .writing-card a{border:1px solid #aabdaf;padding:11px 15px;font-size:12px;white-space:nowrap}
+    .contact{display:flex;justify-content:space-between;align-items:end;gap:30px}
+    .contact h2{font-size:clamp(38px,6vw,62px);max-width:650px}
+    .contact-links{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;font-weight:600}
+    footer{padding:25px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;color:var(--muted);font:10px var(--mono);text-transform:uppercase;letter-spacing:.7px}
+    @media(max-width:760px){
+      .wrap{width:min(100% - 32px,var(--width))}
+      .topbar{height:65px} nav{gap:13px;font-size:11px} nav a:nth-child(2){display:none}
+      .hero{padding:72px 0 60px;grid-template-columns:1fr;gap:35px}
+      h1{letter-spacing:-1.5px}
+      .hero-note{max-width:420px}
+      .section{padding:56px 0}
+      .section-head{display:block}
+      .section-desc{margin-top:10px}
+      .about-grid{grid-template-columns:1fr;gap:30px}
+      .project-grid{grid-template-columns:1fr}
+      .job{grid-template-columns:1fr;gap:8px}
+      .skills-grid{grid-template-columns:1fr 1fr;gap:22px}
+      .writing-card{grid-template-columns:1fr}
+      .writing-card a{justify-self:start}
+      .contact{display:block}
+      .contact-links{margin-top:25px}
+      footer{gap:15px;flex-wrap:wrap}
+    }
+    @media(max-width:420px){nav a:nth-child(3){display:none}.skills-grid{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+  <header class="wrap topbar">
+    <a class="brand" href="#home">HB<span style="color:var(--orange)">.</span></a>
+    <nav aria-label="Main navigation">
+      <a href="#about">About</a><a href="#work">Work</a><a href="#experience">Experience</a><a href="#writing">Writing</a><a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="wrap hero" id="home">
+      <div>
+        <div class="eyebrow">Software engineer · Bengaluru, India</div>
+        <h1>Building useful things<br>with <em>thoughtful</em> engineering.</h1>
+        <p class="intro">I'm Harichandana — a software engineer with 4+ years of experience building full-stack products, backend systems and GenAI applications. I enjoy turning complex workflows into software that feels simple to use.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#work">Explore my work <span>↗</span></a>
+          <a class="button" href="https://github.com/justhc" target="_blank" rel="noreferrer">GitHub ↗</a>
+          <a class="button" href="mailto:bhaskarharichandana@gmail.com">Email me ↗</a>
+        </div>
+      </div>
+      <aside class="hero-note">
+        <div class="eyebrow">A little about my work</div>
+        <strong>Backend to browser.</strong>
+        Product-minded engineering across APIs, distributed workflows, data and user-facing experiences.
+        <div class="availability">Open to conversations</div>
+      </aside>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <div><div class="eyebrow">01 / Background</div><h2 id="about">A bit about me</h2></div>
+          <p class="section-desc">A mix of engineering, curiosity and a habit of asking how things work.</p>
+        </div>
+        <div class="about-grid">
+          <div class="about-copy">
+            <p>I've worked on accounting workflows, travel and booking systems, and AI-powered document experiences. My experience spans building APIs and microservices, integrating external platforms, improving reliability, and developing interfaces that help people get work done.</p>
+            <p>I like understanding a problem end to end — not just the code, but the people and processes around it. Outside engineering, I enjoy writing and exploring ideas through books, film and conversation.</p>
+          </div>
+          <div class="facts">
+            <div class="fact"><strong>4+ years</strong><span>Professional engineering experience</span></div>
+            <div class="fact"><strong>Full stack</strong><span>Backend, APIs and frontend</span></div>
+            <div class="fact"><strong>GenAI</strong><span>LLM-powered product experiences</span></div>
+            <div class="fact"><strong>Writing</strong><span>Essays and film reflections</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="work">
+      <div class="wrap">
+        <div class="section-head">
+          <div><div class="eyebrow">02 / Selected work</div><h2>Things I've worked on</h2></div>
+          <p class="section-desc">A selection of professional work and personal projects. Some professional details are intentionally high-level.</p>
+        </div>
+        <div class="project-grid">
+          <article class="project">
+            <div class="project-top"><span class="project-num">01</span><span class="project-type">Professional · Accounting</span></div>
+            <h3>Accounting workflows</h3>
+            <p>Built full-stack accounting experiences across sales, payroll and accounts payable, including integrations with QuickBooks Online and customer-facing configuration and overview tools.</p>
+            <div class="tags"><span class="tag">Kotlin</span><span class="tag">React</span><span class="tag">TypeScript</span><span class="tag">GraphQL</span><span class="tag">DynamoDB</span></div>
+          </article>
+          <article class="project">
+            <div class="project-top"><span class="project-num">02</span><span class="project-type">Professional · GenAI</span></div>
+            <h3>AI document experience</h3>
+            <p>Developed Python services for a GenAI question-answering and document-comparison platform, helping move the solution from proof of concept towards production.</p>
+            <div class="tags"><span class="tag">Python</span><span class="tag">FastAPI</span><span class="tag">AWS</span><span class="tag">SQLAlchemy</span></div>
+          </article>
+          <article class="project">
+            <div class="project-top"><span class="project-num">03</span><span class="project-type">Professional · Travel</span></div>
+            <h3>Train booking systems</h3>
+            <p>Worked on train and metro booking experiences, improving API performance and contributing to customer-facing travel workflows.</p>
+            <div class="tags"><span class="tag">Java</span><span class="tag">Backend APIs</span><span class="tag">Performance</span></div>
+          </article>
+          <article class="project">
+            <div class="project-top"><span class="project-num">04</span><span class="project-type">Personal · Web app</span></div>
+            <h3>GoEco — carpooling</h3>
+            <p>A project built from scratch to support carpooling and encourage greener, less-polluting travel. Built with PHP, HTML, CSS and XAMPP.</p>
+            <div class="tags"><span class="tag">PHP</span><span class="tag">HTML</span><span class="tag">CSS</span><span class="tag">XAMPP</span></div>
+            <a class="project-link" href="https://github.com/justhc/GoEco" target="_blank" rel="noreferrer">View repository <span>↗</span></a>
+          </article>
+          <article class="project">
+            <div class="project-top"><span class="project-num">05</span><span class="project-type">Personal · Utility</span></div>
+            <h3>SGPA Calculator</h3>
+            <p>A lightweight HTML-based project from my earlier development work. The repository is available on GitHub.</p>
+            <div class="tags"><span class="tag">HTML</span></div>
+            <a class="project-link" href="https://github.com/justhc/sgpacalc" target="_blank" rel="noreferrer">View repository <span>↗</span></a>
+          </article>
+          <article class="project">
+            <div class="project-top"><span class="project-num">06</span><span class="project-type">More on GitHub</span></div>
+            <h3>Code, experiments & learning</h3>
+            <p>Explore my repositories for smaller projects, experiments and things I've built while learning.</p>
+            <div class="tags"><span class="tag">GitHub</span><span class="tag">Projects</span></div>
+            <a class="project-link" href="https://github.com/justhc" target="_blank" rel="noreferrer">Explore GitHub <span>↗</span></a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="experience">
+      <div class="wrap">
+        <div class="section-head">
+          <div><div class="eyebrow">03 / Experience</div><h2>Where I've worked</h2></div>
+          <p class="section-desc">Building products with teams across accounting, travel and software consulting.</p>
+        </div>
+        <div class="timeline">
+          <article class="job">
+            <div class="job-date">AUG 2025 — OCT 2026</div>
+            <div><h3>Software Engineer II</h3><div class="job-company">Toast</div><p>Worked on the Toast Accounting Platform, building full-stack workflows and integrations using Kotlin services, GraphQL, React and TypeScript.</p></div>
+          </article>
+          <article class="job">
+            <div class="job-date">DEC 2024 — MAY 2025</div>
+            <div><h3>Software Engineer</h3><div class="job-company">Paytm · Travel — Trains & Metro</div><p>Contributed to train and metro travel products, including backend API development and performance improvements.</p></div>
+          </article>
+          <article class="job">
+            <div class="job-date">MAY 2022 — DEC 2024</div>
+            <div><h3>Integration Engineer / Software Engineer</h3><div class="job-company">HashedIn by Deloitte</div><p>Worked on software engineering and integration projects, including Python-based GenAI applications and enterprise workflows.</p></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <div><div class="eyebrow">04 / Toolkit</div><h2>Tools I work with</h2></div>
+          <p class="section-desc">Technologies I've used across production systems and projects.</p>
+        </div>
+        <div class="skills-grid">
+          <div class="skill-group"><h3>Languages</h3><p>Java<br>Kotlin<br>Python<br>JavaScript<br>TypeScript<br>SQL</p></div>
+          <div class="skill-group"><h3>Backend</h3><p>Spring Boot<br>Microservices<br>REST APIs<br>GraphQL<br>FastAPI<br>Django</p></div>
+          <div class="skill-group"><h3>Frontend & data</h3><p>React<br>Tailwind CSS<br>PostgreSQL<br>DynamoDB<br>MySQL<br>Redis</p></div>
+          <div class="skill-group"><h3>Cloud & systems</h3><p>AWS<br>Kubernetes<br>Apache Pulsar<br>RabbitMQ<br>Jenkins<br>Kibana</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="writing">
+      <div class="wrap">
+        <div class="section-head">
+          <div><div class="eyebrow">05 / Writing</div><h2>Notes from elsewhere</h2></div>
+          <p class="section-desc">I also write about films, stories and the things that stay with us.</p>
+        </div>
+        <div class="writing-card">
+          <div>
+            <div class="eyebrow">On Medium</div>
+            <h3>Film, people & the stories we tell</h3>
+            <p>Read my writing and reflections on Medium. One piece explores the character Lilly in <em>Dear Comrade</em> and the film's treatment of trauma, agency and self-discovery.</p>
+          </div>
+          <a href="https://medium.com/@harichandanabhaskar" target="_blank" rel="noreferrer">Read my writing ↗</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="contact">
+      <div class="wrap contact">
+        <div>
+          <div class="eyebrow">06 / Say hello</div>
+          <h2>Have an interesting problem in mind?</h2>
+          <p class="intro">I'd be happy to hear about it.</p>
+        </div>
+        <div class="contact-links">
+          <a href="mailto:bhaskarharichandana@gmail.com">Email ↗</a>
+          <a href="https://github.com/justhc" target="_blank" rel="noreferrer">GitHub ↗</a>
+          <a href="https://medium.com/@harichandanabhaskar" target="_blank" rel="noreferrer">Medium ↗</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap"><span>© <span id="year"></span> Harichandana Bhaskar</span><span>Designed with care · Bengaluru, India</span></footer>
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>
+'''
+(out / "index.html").write_text(html, encoding="utf-8")
+readme = """# Harichandana Bhaskar — Portfolio
+
+A responsive, single-page portfolio website built with plain HTML and CSS.
+
+## Preview locally
+Open `index.html` in a browser.
+
+## Publish with GitHub Pages
+1. Create a new public repository, e.g. `portfolio`.
+2. Upload `index.html` to the repository root.
+3. In the repository, open **Settings → Pages**.
+4. Under **Build and deployment**, choose **Deploy from a branch**.
+5. Select `main` and `/ (root)`, then save.
+6. GitHub will provide your public website URL.
+
+## Before publishing
+- Review the project descriptions and dates for accuracy.
+- Add a resume PDF if you want a resume download link.
+- Consider replacing the example personal projects with stronger, more recent public work.
+"""
+(out / "README.md").write_text(readme, encoding="utf-8")
+zip_path = Path("/mnt/data/harichandana-portfolio.zip")
+with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+    for p in out.iterdir():
+        z.write(p, arcname=f"harichandana-portfolio/{p.name}")
+print(f"Created: {out/'index.html'}")
+print(f"Created: {zip_path}")
