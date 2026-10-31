@@ -136,7 +136,8 @@
     .contact h2{font-size:clamp(36px,6vw,60px);max-width:650px;margin-bottom:16px}
     .contact-links{display:flex;flex-direction:column;gap:12px;align-items:flex-start;font-size:15px;font-weight:600}
     .email-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .email-row code{font:500 14px var(--mono);color:var(--ink)}
+    .email-row code{font:500 14px var(--mono);color:var(--ink);user-select:all;-webkit-user-select:all;overflow-wrap:anywhere}
+    .contact-links a{padding:2px 0}
     .copy{font:600 12px var(--sans);padding:6px 10px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
     .copy:hover{border-color:var(--green)}
 
@@ -153,6 +154,9 @@
     html:not(.js) .reveal{opacity:1;transform:none}
 
     @media(max-width:900px){
+      .contact{flex-direction:column;align-items:flex-start}
+      .writing-card{grid-template-columns:1fr}
+      .writing-card a.btn{justify-self:start}
       .skills-grid{grid-template-columns:1fr 1fr}
       .mini-grid{grid-template-columns:1fr 1fr}
       .case{grid-template-columns:1fr}
@@ -426,6 +430,8 @@
       }, {threshold: 0.12});
       els.forEach(function(el){ io.observe(el); });
     } else { els.forEach(function(el){ el.classList.add('in'); }); }
+    // safety net: never leave content hidden if the observer doesn't fire
+    setTimeout(function(){ els.forEach(function(el){ el.classList.add('in'); }); }, 3000);
 
     // active nav link
     var links = document.querySelectorAll('#navList a');
@@ -445,9 +451,22 @@
 
     // copy email
     document.getElementById('copyBtn').addEventListener('click', function(){
-      var b = this, t = document.getElementById('emailText').textContent;
-      function done(){ b.textContent = 'Copied'; setTimeout(function(){ b.textContent = 'Copy'; }, 1800); }
-      try { navigator.clipboard.writeText(t).then(done, function(){}); } catch (e) {}
+      var b = this, el = document.getElementById('emailText'), t = el.textContent;
+      function flash(msg){ b.textContent = msg; setTimeout(function(){ b.textContent = 'Copy'; }, 2000); }
+      function legacy(){
+        try {
+          var r = document.createRange(); r.selectNodeContents(el);
+          var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+          var ok = document.execCommand('copy');
+          setTimeout(function(){ s.removeAllRanges(); }, 600);
+          flash(ok ? 'Copied' : 'Press Ctrl/Cmd+C');
+        } catch (e) { flash('Press Ctrl/Cmd+C'); }
+      }
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(t).then(function(){ flash('Copied'); }, legacy);
+        } else { legacy(); }
+      } catch (e) { legacy(); }
     });
   </script>
 </body>
